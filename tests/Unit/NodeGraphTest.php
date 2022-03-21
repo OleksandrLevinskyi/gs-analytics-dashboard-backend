@@ -20,18 +20,16 @@ class NodeGraphTest extends TestCase
 
         $this->assertArrayHasKey('edges', $data);
         $this->assertCount(2438, $data['edges']);
-        $users = collect($data['edges'])->every(function ($item, $idx) use ($expected) {
+        collect($data['edges'])->every(function ($item, $idx) use ($expected) {
             $item = (array)$item;
-            return $item === $expected['edges'][$idx];
+            $this->assertEquals($item,$expected['edges'][$idx]);
         });
-        $this->assertTrue($users);
 
         $this->assertArrayHasKey('nodes', $data);
         $this->assertCount(83, $data['nodes']);
-        $users = collect($data['nodes'])->every(function ($item, $idx) use ($expected) {
+        collect($data['nodes'])->every(function ($item, $idx) use ($expected) {
             $item = (array)$item;
-            return $item === $expected['nodes'][$idx];
+            $this->assertEquals($item,$expected['nodes'][$idx]);
         });
-        $this->assertTrue($users);
     }
 }
