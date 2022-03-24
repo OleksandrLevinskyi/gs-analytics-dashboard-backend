@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class HeatMap extends Model
 {
     use HasFactory;
 
-    static function getData()
+    static function getData(): Collection
     {
         $userBlackList = [18, 30, 42, 55, 60, 83, 106];
 
@@ -21,8 +22,6 @@ class HeatMap extends Model
             ->orderBy('id')
             ->groupBy('name')
             ->get();
-
-
 
         $connections = DB::select(
             DB::raw(
@@ -52,42 +51,36 @@ class HeatMap extends Model
             )
         );
 
-        $result = [];
-//        for ($i = $users->count() - 1; $i >= 0; $i--) {
-//            $row = $users[$i];
-//            foreach ($users as $col) {
-//                if ($row > $col) {
-//                    $result[] = ['source' => $row, 'target' => $col, 'weight' => 0];
-//                }
-//            }
-//        }
+        return $users
+            ->reverse()
+            ->flatMap(function ($row) use ($connections, $users) {
+                return $users
+                    ->filter(fn($col) => $row->id >= $col->id)
+                    ->map(function ($col) use ($connections, $row) {
+                        $elem = [
+                            'source_id' => $row->id,
+                            'source' => $row->name,
+                            'target_id' => $col->id,
+                            'target' => $col->name,
+                        ];
+
+                        $elem['weight'] = static::getWeight($connections, $elem);
+
+                        return $elem;
+                    });
+            });
+    }
 
 
-        for ($i = $users->count() - 1; $i >= 0; $i--) {
-            $row = $users[$i];
-            foreach ($users as $col) {
-                if ($row >= $col) {
-                    $result[] = [
-                        'source_id' => $row->id,
-                        'source' => $row->name,
-                        'target_id' => $col->id,
-                        'target' => $col->name,
-                        'weight' => 0
-                    ];
-                }
-            }
-        }
-
-        foreach ($result as &$elem) {
-            foreach ($connections as $connection) {
-                if ($connection->source_id > $connection->target_id ?
+    static function getWeight($connections, $elem): int
+    {
+        $connection = collect($connections)
+            ->first(function ($connection) use ($elem) {
+                return $connection->source_id > $connection->target_id ?
                     $elem['source_id'] === $connection->source_id && $elem['target_id'] === $connection->target_id :
-                    $elem['source_id'] === $connection->target_id && $elem['target_id'] === $connection->source_id) {
-                    $elem['weight'] = $connection->weight;
-                }
-            }
-        }
+                    $elem['source_id'] === $connection->target_id && $elem['target_id'] === $connection->source_id;
+            });
 
-        return $result;
+        return $connection->weight ?? 0;
     }
 }
