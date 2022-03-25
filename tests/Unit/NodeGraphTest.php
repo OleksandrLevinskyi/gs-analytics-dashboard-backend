@@ -20,14 +20,14 @@ class NodeGraphTest extends TestCase
 
         $this->assertArrayHasKey('edges', $data);
         $this->assertCount(2438, $data['edges']);
-        collect($data['edges'])->every(function ($item, $idx) use ($expected) {
+        collect($data['edges'])->each(function ($item, $idx) use ($expected) {
             $item = (array)$item;
             $this->assertEquals($item,$expected['edges'][$idx]);
         });
 
         $this->assertArrayHasKey('nodes', $data);
         $this->assertCount(83, $data['nodes']);
-        collect($data['nodes'])->every(function ($item, $idx) use ($expected) {
+        collect($data['nodes'])->each(function ($item, $idx) use ($expected) {
             $item = (array)$item;
             $this->assertEquals($item,$expected['nodes'][$idx]);
         });
