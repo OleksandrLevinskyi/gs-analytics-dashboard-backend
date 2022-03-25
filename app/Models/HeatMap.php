@@ -4,18 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class HeatMap extends Model
 {
     use HasFactory;
 
-    static function getData(): Collection
+    static function getData()
     {
         $userBlackList = [18, 30, 42, 55, 60, 83, 106];
 
         $users = DB::table('users')
+            ->selectRaw('id, name')
+            ->where('is_vehikl_member', 1)
+            ->whereNotIn('id', $userBlackList)
+            ->orderBy('id')
+            ->get();
+
+        $displayedUsers = DB::table('users')
             ->selectRaw('MIN(id) id, name')
             ->where('is_vehikl_member', 1)
             ->whereNotIn('id', $userBlackList)
@@ -51,26 +57,64 @@ class HeatMap extends Model
             )
         );
 
-        return $users
+        $duplicateUsers = static::getUsersWithMultipleAccounts($users);
+
+        return $displayedUsers
             ->reverse()
-            ->flatMap(function ($row) use ($connections, $users) {
-                return $users
+            ->flatMap(function ($row) use ($duplicateUsers, $connections, $displayedUsers) {
+                return $displayedUsers
                     ->filter(fn($col) => $row->id >= $col->id)
-                    ->map(function ($col) use ($connections, $row) {
-                        $elem = [
-                            'source_id' => $row->id,
-                            'source' => $row->name,
-                            'target_id' => $col->id,
-                            'target' => $col->name,
-                        ];
+                    ->map(function ($col) use ($duplicateUsers, $connections, $row) {
+                        if (array_key_exists($col->id, $duplicateUsers)) {
+                            $totalWeight = $duplicateUsers[$col->id]->reduce(function ($curr, $id) use ($connections, $col, $row) {
+                                $elem = [
+                                    'source_id' => $row->id,
+                                    'source' => $row->name,
+                                    'target_id' => $id,
+                                    'target' => $col->name,
+                                ];
 
-                        $elem['weight'] = static::getWeight($connections, $elem);
 
-                        return $elem;
+                                return $curr + static::getWeight($connections, $elem);
+                            }, 0);
+
+                            return [
+                                'source_id' => $row->id,
+                                'source' => $row->name,
+                                'target_id' => $col->id,
+                                'target' => $col->name,
+                                'weight' => $totalWeight,
+                            ];
+                        } else {
+                            $elem = [
+                                'source_id' => $row->id,
+                                'source' => $row->name,
+                                'target_id' => $col->id,
+                                'target' => $col->name,
+                            ];
+
+                            $elem['weight'] = static::getWeight($connections, $elem);
+
+                            return $elem;
+                        }
                     });
             });
     }
 
+    static function getUsersWithMultipleAccounts($users)
+    {
+        $usersWithMultipleAccounts = [];
+
+        $users->groupBy('name')
+            ->filter(function ($user) {
+                return count($user) > 1;
+            })
+            ->map(function ($user) use (&$usersWithMultipleAccounts) {
+                $usersWithMultipleAccounts[$user[0]->id] = $user->pluck('id');
+            });
+
+        return $usersWithMultipleAccounts;
+    }
 
     static function getWeight($connections, $elem): int
     {
