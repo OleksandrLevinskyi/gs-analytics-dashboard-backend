@@ -4,16 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class HeatMap extends Model
 {
     use HasFactory;
 
-    static function getData()
+    static function getData($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
-        $userBlackList = [18, 30, 42, 55, 60, 83, 106];
-
         $users = DB::table('users')
             ->selectRaw('id, name')
             ->where('is_vehikl_member', 1)
@@ -57,51 +56,37 @@ class HeatMap extends Model
             )
         );
 
-        $duplicateUsers = static::getUsersWithMultipleAccounts($users);
+        $idsToReplace = static::getIdsToReplace($users);
 
-        return $displayedUsers
+        $connections = collect($connections)->map(function ($connection) use ($idsToReplace) {
+            $connection->source_id = Arr::get($idsToReplace, $connection->source_id, $connection->source_id);
+            $connection->target_id = Arr::get($idsToReplace, $connection->target_id, $connection->target_id);
+            return $connection;
+        });
+
+        $bob = $displayedUsers
             ->reverse()
-            ->flatMap(function ($row) use ($duplicateUsers, $connections, $displayedUsers) {
+            ->flatMap(function ($row) use ($connections, $displayedUsers) {
                 return $displayedUsers
                     ->filter(fn($col) => $row->id >= $col->id)
-                    ->map(function ($col) use ($duplicateUsers, $connections, $row) {
-                        if (array_key_exists($col->id, $duplicateUsers)) {
-                            $totalWeight = $duplicateUsers[$col->id]->reduce(function ($curr, $id) use ($connections, $col, $row) {
-                                $elem = [
-                                    'source_id' => $row->id,
-                                    'source' => $row->name,
-                                    'target_id' => $id,
-                                    'target' => $col->name,
-                                ];
+                    ->map(function ($col) use ($connections, $row) {
+                        $elem = [
+                            'source_id' => $row->id,
+                            'source' => $row->name,
+                            'target_id' => $col->id,
+                            'target' => $col->name,
+                        ];
 
+                        $elem['weight'] = static::getWeight($connections, $elem);
 
-                                return $curr + static::getWeight($connections, $elem);
-                            }, 0);
-
-                            return [
-                                'source_id' => $row->id,
-                                'source' => $row->name,
-                                'target_id' => $col->id,
-                                'target' => $col->name,
-                                'weight' => $totalWeight,
-                            ];
-                        } else {
-                            $elem = [
-                                'source_id' => $row->id,
-                                'source' => $row->name,
-                                'target_id' => $col->id,
-                                'target' => $col->name,
-                            ];
-
-                            $elem['weight'] = static::getWeight($connections, $elem);
-
-                            return $elem;
-                        }
+                        return $elem;
                     });
             });
+
+        return $bob;
     }
 
-    static function getUsersWithMultipleAccounts($users)
+    static function getIdsToReplace($users)
     {
         $usersWithMultipleAccounts = [];
 
@@ -110,7 +95,15 @@ class HeatMap extends Model
                 return count($user) > 1;
             })
             ->map(function ($user) use (&$usersWithMultipleAccounts) {
-                $usersWithMultipleAccounts[$user[0]->id] = $user->pluck('id');
+                $minUserId = min($user->pluck('id')->toArray());
+
+                $b = collect($user)
+                    ->filter(fn($u) => $u->id != $minUserId)
+                    ->pluck('id');
+
+                for ($i = 0; $i < count($b); $i++) {
+                    $usersWithMultipleAccounts[$b[$i]] = $minUserId;
+                }
             });
 
         return $usersWithMultipleAccounts;
