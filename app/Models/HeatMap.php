@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class HeatMap extends Model
@@ -28,33 +29,22 @@ class HeatMap extends Model
             ->groupBy('name')
             ->get();
 
-        $connections = DB::select(
-            DB::raw(
-                "SELECT user_id1 source_id, user_id2 target_id, user_name1 source, user_name2 target, COUNT(data.user_id1) weight
-                        FROM (
-                          SELECT gsu1.user_id user_id1,
-                                 gsu1.name user_name1,
-                                 gsu2.user_id user_id2,
-                                 gsu2.name user_name2
-                          FROM (
-                            SELECT *
-                            FROM growth_session_user gsu
-                            JOIN users u ON u.id = gsu.user_id
-                            WHERE u.is_vehikl_member = 1
-                          ) gsu1
-                          JOIN (
-                            SELECT *
-                            FROM growth_session_user gsu
-                            JOIN users u ON u.id = gsu.user_id
-                            WHERE u.is_vehikl_member = 1
-                          ) gsu2
-                          ON gsu1.growth_session_id = gsu2.growth_session_id AND gsu1.user_id <> gsu2.user_id
-                            JOIN growth_sessions gs ON gs.id = gsu1.growth_session_id
-                        ) data
-                        WHERE user_id1 > user_id2
-                        GROUP BY data.user_id1, data.user_id2;"
+        $connections = DB::table('view_name', 'gsu1')
+            ->select(
+                "gsu1.user_id as source_id",
+                "gsu2.user_id as target_id",
+                "gsu1.name as source",
+                "gsu2.name as target",
+                DB::raw("COUNT(CONCAT(gsu1.user_id, '_', gsu2.user_id)) weight")
             )
-        );
+            ->join(
+                'view_name as gsu2',
+                fn($join) => $join->on('gsu1.growth_session_id', '=', 'gsu2.growth_session_id')->on('gsu1.user_id', '<>', 'gsu2.user_id')
+            )
+            ->join('growth_sessions as gs', 'gs.id', '=', 'gsu1.growth_session_id')
+            ->whereColumn('gsu1.user_id', '>', 'gsu2.user_id')
+            ->groupBy('gsu1.user_id', 'gsu2.user_id')
+            ->get();
 
         $idsToReplace = static::getIdsToReplace($users);
 
@@ -64,7 +54,7 @@ class HeatMap extends Model
             return $connection;
         });
 
-        $bob = $displayedUsers
+        return $displayedUsers
             ->reverse()
             ->flatMap(function ($row) use ($connections, $displayedUsers) {
                 return $displayedUsers
@@ -82,31 +72,20 @@ class HeatMap extends Model
                         return $elem;
                     });
             });
-
-        return $bob;
     }
 
     static function getIdsToReplace($users)
     {
-        $usersWithMultipleAccounts = [];
+        return $users->groupBy('name')
+            ->filter(fn(Collection $userRecords) => $userRecords->count() > 1)
+            ->mapWithKeys(function (Collection $userRecords) use (&$usersWithMultipleAccounts) {
+                $minUserId = $userRecords->pluck('id')->min();
 
-        $users->groupBy('name')
-            ->filter(function ($user) {
-                return count($user) > 1;
-            })
-            ->map(function ($user) use (&$usersWithMultipleAccounts) {
-                $minUserId = min($user->pluck('id')->toArray());
-
-                $b = collect($user)
-                    ->filter(fn($u) => $u->id != $minUserId)
-                    ->pluck('id');
-
-                for ($i = 0; $i < count($b); $i++) {
-                    $usersWithMultipleAccounts[$b[$i]] = $minUserId;
-                }
+                return $userRecords
+                    ->where('id', '!==', $minUserId)
+                    ->pluck('id')
+                    ->mapWithKeys(fn(int $duplicateId) => [$duplicateId => $minUserId]);
             });
-
-        return $usersWithMultipleAccounts;
     }
 
     static function getWeight($connections, $elem): int
