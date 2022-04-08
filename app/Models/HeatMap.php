@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\EdgeResource;
+use App\NodeResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -15,50 +16,29 @@ class HeatMap extends Model
 
     static function getData($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
+        // get all of the vehikl users
         $users = DB::table('users')
             ->selectRaw('id, name')
             ->where('is_vehikl_member', 1)
             ->whereNotIn('id', $userBlackList)
-            ->orderBy('id')
             ->get();
 
-        $displayedUsers = DB::table('users')
-            ->selectRaw('MIN(id) id, name')
-            ->where('is_vehikl_member', 1)
-            ->whereNotIn('id', $userBlackList)
-            ->orderBy('id')
-            ->groupBy('name')
-            ->get();
-
+        // get all connections including weights
         $connections = EdgeResource::getEdges();
 
+        // get all ids to replace
         $idsToReplace = static::getIdsToReplace($users);
 
-        $connections = collect($connections)->map(function ($connection) use ($idsToReplace) {
+        // loop over connections to replace ids for duplicated accounts
+        $connections = $connections->map(function ($connection) use ($idsToReplace) {
             $connection->source_id = Arr::get($idsToReplace, $connection->source_id, $connection->source_id);
             $connection->target_id = Arr::get($idsToReplace, $connection->target_id, $connection->target_id);
             return $connection;
         });
 
-        return $displayedUsers
-            ->reverse()
-            ->flatMap(function ($row) use ($connections, $displayedUsers) {
-                return $displayedUsers
-                    ->filter(fn($col) => $row->id >= $col->id)
-                    ->map(function ($col) use ($connections, $row) {
-                        $elem = [
-                            'source_id' => $row->id,
-                            'source' => $row->name,
-                            'target_id' => $col->id,
-                            'target' => $col->name,
-                            'weight' => 0,
-                        ];
-
-                        $elem['weight'] += static::getWeight($connections, $elem);
-
-                        return $elem;
-                    });
-            });
+        // create a grid from displayed users
+        return NodeResource::getNodeGrid(array_merge($userBlackList, array_keys($idsToReplace->toArray())))
+            ->each(fn($elem) => $elem->weight = static::getWeight($connections, $elem));
     }
 
     static function getIdsToReplace($users)
@@ -77,13 +57,13 @@ class HeatMap extends Model
 
     static function getWeight($connections, $elem): int
     {
-        $connection = collect($connections)
-            ->first(function ($connection) use ($elem) {
-                return $connection->source_id > $connection->target_id ?
-                    $elem['source_id'] === $connection->source_id && $elem['target_id'] === $connection->target_id :
-                    $elem['source_id'] === $connection->target_id && $elem['target_id'] === $connection->source_id;
-            });
+        if ($elem->source_id === $elem->target_id) return 0;
 
-        return $connection->weight ?? 0;
+        $filteredConnections = $connections
+            ->filter(fn($connection) => ($elem->source_id === $connection->source_id && $elem->target_id === $connection->target_id) ||
+                ($elem->source_id === $connection->target_id && $elem->target_id === $connection->source_id)
+            );
+
+        return array_sum($filteredConnections->pluck('weight')->toArray()) ?? 0;
     }
 }
