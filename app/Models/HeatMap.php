@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\EdgeResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -29,22 +30,7 @@ class HeatMap extends Model
             ->groupBy('name')
             ->get();
 
-        $connections = DB::table('view_name', 'gsu1')
-            ->select(
-                "gsu1.user_id as source_id",
-                "gsu2.user_id as target_id",
-                "gsu1.name as source",
-                "gsu2.name as target",
-                DB::raw("COUNT(CONCAT(gsu1.user_id, '_', gsu2.user_id)) weight")
-            )
-            ->join(
-                'view_name as gsu2',
-                fn($join) => $join->on('gsu1.growth_session_id', '=', 'gsu2.growth_session_id')->on('gsu1.user_id', '<>', 'gsu2.user_id')
-            )
-            ->join('growth_sessions as gs', 'gs.id', '=', 'gsu1.growth_session_id')
-            ->whereColumn('gsu1.user_id', '>', 'gsu2.user_id')
-            ->groupBy('gsu1.user_id', 'gsu2.user_id')
-            ->get();
+        $connections = EdgeResource::getEdges();
 
         $idsToReplace = static::getIdsToReplace($users);
 
@@ -65,9 +51,10 @@ class HeatMap extends Model
                             'source' => $row->name,
                             'target_id' => $col->id,
                             'target' => $col->name,
+                            'weight' => 0,
                         ];
 
-                        $elem['weight'] = static::getWeight($connections, $elem);
+                        $elem['weight'] += static::getWeight($connections, $elem);
 
                         return $elem;
                     });
