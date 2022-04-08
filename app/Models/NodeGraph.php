@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\EdgeResource;
+use App\NodeResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class NodeGraph extends Model
 {
@@ -13,13 +13,9 @@ class NodeGraph extends Model
 
     static function getData()
     {
-        $nodes = DB::table('users')
-            ->select('id', 'name')
-            ->where('is_vehikl_member', 1)
-            ->get();
-
-        $edges = EdgeResource::getEdges();
-
-        return ['nodes' => $nodes, 'edges' => $edges];
+        return [
+            'nodes' => NodeResource::getNodes(),
+            'edges' => EdgeResource::getEdges()
+        ];
     }
 }
