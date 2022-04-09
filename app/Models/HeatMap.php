@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\EdgeResource;
 use App\NodeResource;
+use App\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -17,27 +18,25 @@ class HeatMap extends Model
     static function getData($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
         // get all of the vehikl users
-        $users = DB::table('users')
-            ->selectRaw('id, name')
-            ->where('is_vehikl_member', 1)
-            ->whereNotIn('id', $userBlackList)
-            ->get();
+        $users = User::all()
+            ->where('is_vehikl_member', 1);
+
+        $duplicatedIdsToReplace = static::getIdsToReplace($users);
 
         // get all connections including weights
         $connections = EdgeResource::getEdges();
 
-        // get all ids to replace
-        $idsToReplace = static::getIdsToReplace($users);
-
         // loop over connections to replace ids for duplicated accounts
-        $connections = $connections->map(function ($connection) use ($idsToReplace) {
-            $connection->source_id = Arr::get($idsToReplace, $connection->source_id, $connection->source_id);
-            $connection->target_id = Arr::get($idsToReplace, $connection->target_id, $connection->target_id);
+        $connections = $connections->map(function ($connection) use ($duplicatedIdsToReplace) {
+            $connection->source_id = Arr::get($duplicatedIdsToReplace, $connection->source_id, $connection->source_id);
+            $connection->target_id = Arr::get($duplicatedIdsToReplace, $connection->target_id, $connection->target_id);
             return $connection;
         });
 
         // create a grid from displayed users
-        return NodeResource::getNodeGrid(array_merge($userBlackList, array_keys($idsToReplace->toArray())))
+        $idsToExclude = array_merge($userBlackList, array_keys($duplicatedIdsToReplace->toArray()));
+
+        return NodeResource::getNodeGrid($idsToExclude)
             ->each(fn($elem) => $elem->weight = static::getWeight($connections, $elem));
     }
 
@@ -60,10 +59,14 @@ class HeatMap extends Model
         if ($elem->source_id === $elem->target_id) return 0;
 
         $filteredConnections = $connections
-            ->filter(fn($connection) => ($elem->source_id === $connection->source_id && $elem->target_id === $connection->target_id) ||
-                ($elem->source_id === $connection->target_id && $elem->target_id === $connection->source_id)
-            );
+            ->filter(fn($connection) => self::areSameElems($elem, $connection));
 
         return array_sum($filteredConnections->pluck('weight')->toArray()) ?? 0;
+    }
+
+    static function areSameElems($elem1, $elem2): bool
+    {
+        return ($elem1->source_id === $elem2->source_id && $elem1->target_id === $elem2->target_id) ||
+            ($elem1->source_id === $elem2->target_id && $elem1->target_id === $elem2->source_id);
     }
 }

@@ -23,5 +23,19 @@ class EdgeResource
             ->whereColumn('gsu1.user_id', '>', 'gsu2.user_id')
             ->groupBy('gsu1.user_id', 'gsu2.user_id')
             ->get();
+
+//        return DB::table('growth_session_user', 'gsu1')
+//            ->select(
+//                "gsu1.user_id as source_id",
+//                "gsu2.user_id as target_id",
+//                DB::raw("COUNT(CONCAT(gsu1.user_id, '_', gsu2.user_id)) weight")
+//            )
+//            ->join(
+//                'growth_session_user as gsu2',
+//                fn($join) => $join->on('gsu1.growth_session_id', '=', 'gsu2.growth_session_id')->on('gsu1.user_id', '<>', 'gsu2.user_id')
+//            )
+//            ->whereColumn('gsu1.user_id', '>', 'gsu2.user_id')
+//            ->groupBy('gsu1.user_id', 'gsu2.user_id')
+//            ->get();
     }
 }
