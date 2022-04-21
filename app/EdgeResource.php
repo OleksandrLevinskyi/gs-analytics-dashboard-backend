@@ -45,7 +45,6 @@ class EdgeResource
 
     static function getConnections($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
-        //TBD: use sets in connections instead of arrays to avoid duplicate values (possible bug with duplicated users - $idsToReplace)
         $connections = NodeResource::get()->mapWithKeys(fn($e) => [$e->id => []])->toArray();
         $idsToReplace = NodeResource::getDuplicatedIdsToReplace();
 
@@ -57,7 +56,7 @@ class EdgeResource
                 $connections[self::getKey($e->target_id, $idsToReplace)][] = self::getKey($e->source_id, $idsToReplace);
             });
 
-        return $connections;
+        return collect($connections)->map(fn($e) => collect($e)->unique()->flatten());
     }
 
     static function getData()
