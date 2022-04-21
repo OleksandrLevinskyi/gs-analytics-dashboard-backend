@@ -2,29 +2,49 @@
 
 namespace App;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class NodeResource
 {
-    static function getNodes()
+    static function get()
     {
+        $idsToExclude = self::getIdsToExclude();
+
         return DB::table('users')
             ->select('id', 'name')
             ->where('is_vehikl_member', 1)
+            ->whereNotIn('id', $idsToExclude)
             ->get();
     }
 
-    static function getNodeGrid($idsToExclude = [])
+    static function getDuplicatedIdsToReplace()
     {
-        return DB::table('users', 'u1')
-            ->crossJoin('users as u2')
-            ->select(DB::raw('MIN(u1.id) source_id, u1.name source, MIN(u2.id) target_id, u2.name target, 0 weight'))
-            ->where('u1.is_vehikl_member', 1)
-            ->where('u2.is_vehikl_member', 1)
-            ->whereNotIn('u1.id', $idsToExclude)
-            ->whereNotIn('u2.id', $idsToExclude)
-            ->whereColumn('u1.name', '>=', 'u2.name')
-            ->groupBy('target', 'source')
-            ->get();
+        $users = User::all()
+            ->where('is_vehikl_member', 1);
+
+        return $users->groupBy('name')
+            ->filter(fn(Collection $userRecords) => $userRecords->count() > 1)
+            ->mapWithKeys(function (Collection $userRecords) use (&$usersWithMultipleAccounts) {
+                $minUserId = $userRecords->pluck('id')->min();
+
+                return $userRecords
+                    ->where('id', '!==', $minUserId)
+                    ->pluck('id')
+                    ->mapWithKeys(fn(int $duplicateId) => [$duplicateId => $minUserId]);
+            });
+    }
+
+    static function getDict()
+    {
+        return self::get()
+            ->mapWithKeys(fn($e) => [$e->id => $e->name]);
+    }
+
+    public static function getIdsToExclude($userBlackList = [18, 30, 42, 55, 60, 83, 106]): array
+    {
+        $duplicatedIdsToReplace = static::getDuplicatedIdsToReplace();
+
+        return array_merge($userBlackList, array_keys($duplicatedIdsToReplace->toArray()));
     }
 }

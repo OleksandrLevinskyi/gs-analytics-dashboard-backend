@@ -2,19 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HeatMap;
-use App\Models\NodeGraph;
+use App\EdgeResource;
+use App\NodeResource;
 
 class DataController extends Controller
 {
-    public function nodeGraph()
+    public function nodes()
     {
-        return NodeGraph::getData();
+        return NodeResource::get();
     }
 
-    public function heatMap()
+    public function edges()
     {
-        $userBlackList = [18, 30, 42, 55, 60, 83, 106];
-        return HeatMap::getData($userBlackList);
+        return EdgeResource::get();
+    }
+
+    public function dictNodes()
+    {
+        return NodeResource::getDict();
+    }
+
+    public function dictEdges()
+    {
+        return EdgeResource::getWeightDictionary();
+    }
+
+    public function dictConnections()
+    {
+        return EdgeResource::getConnections();
     }
 }
