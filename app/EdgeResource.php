@@ -31,13 +31,11 @@ class EdgeResource
 
         $data = self::getData();
 
-        //TBD: sum up weights if a key exists
-        return $data->mapWithKeys(fn($e) => [
-            self::getKey($e->source_id, $idsToReplace)
-            . '_' .
-            self::getKey($e->target_id, $idsToReplace)
-            => $e->weight
-        ]);
+        $result = $data->mapWithKeys(fn($e) => [self::getKey($e->source_id, $idsToReplace) . '_' . self::getKey($e->target_id, $idsToReplace) => 0]);
+
+        $data->each(fn($e) => $result[self::getKey($e->source_id, $idsToReplace) . '_' . self::getKey($e->target_id, $idsToReplace)] += $e->weight);
+
+        return $result;
     }
 
     static function getKey($key, $stack)
