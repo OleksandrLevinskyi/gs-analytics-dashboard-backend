@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('social_user/{user_hash}', [LoginController::class, 'getSocialUser']);
+
+    Route::get('nodes', [DataController::class, 'nodes']);
+    Route::get('edges', [DataController::class, 'edges']);
+
+    Route::prefix('dictionary')->group(function () {
+        Route::get('nodes', [DataController::class, 'dictNodes']);
+        Route::get('edges', [DataController::class, 'dictEdges']);
+        Route::get('connections', [DataController::class, 'dictConnections']);
+    });
 });

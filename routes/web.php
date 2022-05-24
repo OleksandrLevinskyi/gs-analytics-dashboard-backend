@@ -19,15 +19,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('social_user/{user_hash}', [LoginController::class, 'getSocialUser']);
 Route::get('login/github', [LoginController::class, 'redirectToProvider']);
 Route::get('login/github/callback', [LoginController::class, 'handleProviderCallback']);
-
-Route::get('nodes', [DataController::class, 'nodes']);
-Route::get('edges', [DataController::class, 'edges']);
-
-Route::prefix('dictionary')->group(function(){
-    Route::get('nodes', [DataController::class, 'dictNodes']);
-    Route::get('edges', [DataController::class, 'dictEdges']);
-    Route::get('connections', [DataController::class, 'dictConnections']);
-});

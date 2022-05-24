@@ -5,9 +5,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Http\Request;
-use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Laravel\Socialite\Facades\Socialite;
@@ -27,21 +24,17 @@ class LoginController extends Controller
         $user = User::query()->where('email', $githubUser->email)->where('is_vehikl_member', 1)->first();
 
         if (!$user) {
-            return "error";
+            return response()->json(['error' => 'Invalid user.'], 422);
         }
 
         Auth::login($user);
 
         $hash = md5("github.{$githubUser->email}");
-        Cache::put("social_user.{$hash}", $user, now()->addHour());
-
-        return redirect(config('app.spa_url') . '/login/callback' . "#{$hash}");
-
-//        return [
-//            'username'=> $githubUser->name
-//        ];
-
-        // take $githubUser, pass its credentials to Grafana
+        Cache::put("social_user.{$hash}", $user);
+//        $token = $user->createToken('token-name')->plainTextToken;
+//
+//        return response()->json($user, 200, ['Access-Token' => $token]);
+        return redirect(config('app.spa_url'));
     }
 
     public function getSocialUser($userHash)
