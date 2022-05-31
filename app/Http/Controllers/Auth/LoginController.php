@@ -5,8 +5,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
+use http\Cookie;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
@@ -31,16 +36,23 @@ class LoginController extends Controller
 
         $hash = md5("github.{$githubUser->email}");
         Cache::put("social_user.{$hash}", $user);
-//        $token = $user->createToken('token-name')->plainTextToken;
-//
-//        return response()->json($user, 200, ['Access-Token' => $token]);
-        return redirect(config('app.spa_url'));
+
+        return redirect(config('app.spa_url'))->withCookie(cookie('hash', $hash, 0, null, null, null, false, true));
     }
 
     public function getSocialUser($userHash)
     {
+        $decryptedHash = Str::after(Crypt::decrypt($userHash, false), '|');
+
         return response()->json(
-            Cache::get("social_user.{$userHash}")
+            Cache::get("social_user.{$decryptedHash}")
         );
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+
+        return redirect(config('app.spa_url'));
     }
 }

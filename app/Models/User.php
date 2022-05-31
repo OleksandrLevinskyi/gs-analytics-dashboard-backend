@@ -9,11 +9,11 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    protected $table = 'users';
+    use Notifiable;
+    use HasFactory;
+    use HasApiTokens;
 
-    use Notifiable,
-        HasFactory,
-        HasApiTokens;
+    protected $table = 'users';
 
     protected $fillable = [
         'github_nickname',
@@ -42,10 +42,5 @@ class User extends Authenticatable
     public function comments()
     {
         return $this->hasMany(Comment::class);
-    }
-
-    public function providers()
-    {
-        return $this->hasMany(Provider::class,'user_id','id');
     }
 }
