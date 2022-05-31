@@ -17,8 +17,8 @@ class EdgeResource
                     ->filter(fn($col) => $row->id >= $col->id)
                     ->map(function ($col) use ($weightDictionary, $row) {
                         return [
-                            'source_id' => $row->id,
-                            'target_id' => $col->id,
+                            'source' => $row->id,
+                            'target' => $col->id,
                             'weight' => $weightDictionary[$row->id . '_' . $col->id] ?? 0,
                         ];
                     });
