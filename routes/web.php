@@ -15,9 +15,7 @@ use \App\Http\Controllers\Auth\LoginController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
 Route::get('login/github', [LoginController::class, 'redirectToProvider']);
 Route::get('login/github/callback', [LoginController::class, 'handleProviderCallback']);
+
+Route::get('logout', [LoginController::class, 'logout']);
