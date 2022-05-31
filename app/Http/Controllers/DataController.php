@@ -19,7 +19,7 @@ class DataController extends Controller
 
     public function dictNodes()
     {
-        return NodeResource::getDict();
+        return NodeResource::getDictitionary();
     }
 
     public function dictEdges()

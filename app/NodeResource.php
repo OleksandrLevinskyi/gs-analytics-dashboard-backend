@@ -36,7 +36,7 @@ class NodeResource
             });
     }
 
-    static function getDict()
+    static function getDictitionary()
     {
         return self::get()
             ->mapWithKeys(fn($e) => [$e->id => $e->name]);
