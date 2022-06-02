@@ -29,7 +29,7 @@ class LoginController extends Controller
         $user = User::query()->where('email', $githubUser->email)->where('is_vehikl_member', 1)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'Invalid user.'], 422);
+            return redirect(config('app.spa_url').'/invalid-user');
         }
 
         Auth::login($user);
