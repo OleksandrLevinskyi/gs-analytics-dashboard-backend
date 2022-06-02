@@ -19,12 +19,12 @@ use Illuminate\Support\Facades\Route;
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('social_user/{user_hash}', [LoginController::class, 'getSocialUser']);
 
-    Route::get('nodes', [DataController::class, 'nodes']);
-    Route::get('edges', [DataController::class, 'edges']);
+    Route::get('nodes', [DataController::class, 'getNodes']);
+    Route::get('edges', [DataController::class, 'getEdges']);
 
     Route::prefix('dictionary')->group(function () {
-        Route::get('nodes', [DataController::class, 'dictNodes']);
-        Route::get('edges', [DataController::class, 'dictEdges']);
-        Route::get('connections', [DataController::class, 'dictConnections']);
+        Route::get('nodes', [DataController::class, 'getNodeDictionary']);
+        Route::get('edges', [DataController::class, 'getEdgeDictionary']);
+        Route::get('connections', [DataController::class, 'getConnectionDictionary']);
     });
 });

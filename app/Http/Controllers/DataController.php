@@ -4,31 +4,34 @@ namespace App\Http\Controllers;
 
 use App\EdgeResource;
 use App\NodeResource;
+use Illuminate\Support\Facades\Cache;
 
 class DataController extends Controller
 {
-    public function nodes()
+    const ONE_HOUR = 60 * 60;
+
+    public function getNodes()
     {
-        return NodeResource::get();
+        return Cache::remember('nodes', self::ONE_HOUR, fn() => NodeResource::get());
     }
 
-    public function edges()
+    public function getEdges()
     {
-        return EdgeResource::get();
+        return Cache::remember('edges', self::ONE_HOUR, fn() => EdgeResource::get());
     }
 
-    public function dictNodes()
+    public function getNodeDictionary()
     {
-        return NodeResource::getDictitionary();
+        return Cache::remember('node_dictionary', self::ONE_HOUR, fn() => NodeResource::getDictitionary());
     }
 
-    public function dictEdges()
+    public function getEdgeDictionary()
     {
-        return EdgeResource::getWeightDictionary();
+        return Cache::remember('edge_dictionary', self::ONE_HOUR, fn() => EdgeResource::getWeightDictionary());
     }
 
-    public function dictConnections()
+    public function getConnectionDictionary()
     {
-        return EdgeResource::getConnections();
+        return Cache::remember('connection_dictionary', self::ONE_HOUR, fn() => EdgeResource::getConnections());
     }
 }
