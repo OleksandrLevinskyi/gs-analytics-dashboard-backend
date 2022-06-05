@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\EdgeResource;
-use App\NodeResource;
+use App\Resources\EdgeResource;
+use App\Resources\NodeResource;
 use Illuminate\Support\Facades\Cache;
 
 class DataController extends Controller
