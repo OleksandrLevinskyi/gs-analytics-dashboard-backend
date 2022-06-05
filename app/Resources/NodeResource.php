@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 class NodeResource
 {
-    static function get()
+    static function get($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
-        $idsToExclude = self::getIdsToExclude();
+        $idsToExclude = self::getIdsToExclude($userBlackList);
 
         return DB::table('users')
             ->select('id', 'name')
@@ -42,7 +42,7 @@ class NodeResource
             ->mapWithKeys(fn($e) => [$e->id => $e->name]);
     }
 
-    public static function getIdsToExclude($userBlackList = [18, 30, 42, 55, 60, 83, 106]): array
+    public static function getIdsToExclude($userBlackList = []): array
     {
         $duplicatedIdsToReplace = static::getDuplicatedIdsToReplace();
 
