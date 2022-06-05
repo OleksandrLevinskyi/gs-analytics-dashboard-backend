@@ -12,6 +12,8 @@ class CreateUsersTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('avatar')->nullable();
+            $table->string('github_nickname')->after('name')->nullable();
+            $table->boolean('is_vehikl_member')->default(false)->after('github_nickname');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

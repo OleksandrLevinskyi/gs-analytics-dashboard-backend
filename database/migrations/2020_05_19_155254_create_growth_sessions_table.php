@@ -4,13 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSocialMobsTable extends Migration
+class CreateGrowthSessionsTable extends Migration
 {
     public function up()
     {
-        Schema::create('social_mobs', function (Blueprint $table) {
+        Schema::create('growth_sessions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
+            $table->string('title')->nullable();
+            $table->unsignedBigInteger('attendee_limit')->default(PHP_INT_MAX);
+            $table->string('discord_channel_id')->nullable(true)->after('location');
+            $table->boolean('is_public')->default(false)->after('end_time');
             $table->text('topic');
             $table->string('location');
             $table->date('date');
@@ -22,6 +25,6 @@ class CreateSocialMobsTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('social_mobs');
+        Schema::dropIfExists('growth_sessions');
     }
 }
