@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 
-class TestList extends TestCase
+class EdgeResourceTest extends TestCase
 {
     public function test_it_formats_data_correctly(){}
 
