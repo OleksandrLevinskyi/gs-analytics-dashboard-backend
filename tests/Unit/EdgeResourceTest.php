@@ -16,35 +16,105 @@ class EdgeResourceTest extends TestCase
 
         $result = EdgeResource::getData()->toArray();
 
-        $this->assertEquals([
-            (object)[
-                "source_id" => $otherUsers[0]->id,
-                "target_id" => $accountsOfSameUser[0]->id,
-                "weight" => 1,
+        $this->assertEquals(
+            [
+                (object)[
+                    "source_id" => $otherUsers[0]->id,
+                    "target_id" => $accountsOfSameUser[0]->id,
+                    "weight" => 1,
+                ],
+                (object)[
+                    "source_id" => $otherUsers[1]->id,
+                    "target_id" => $accountsOfSameUser[0]->id,
+                    "weight" => 1,
+                ],
+                (object)[
+                    "source_id" => $otherUsers[2]->id,
+                    "target_id" => $accountsOfSameUser[1]->id,
+                    "weight" => 1,
+                ]],
+            $result
+        );
+    }
+
+    public function test_it_filters_out_users_outside_of_the_organization()
+    {
+        list($accountsOfSameUser, $otherUsers, $growthSessions) = $this->generateRecords();
+        $outsider = User::factory()->create();
+        $outsider->growthSessions()->attach($growthSessions[0], ['user_type_id' => UserType::ATTENDEE_ID]);
+
+        $result = EdgeResource::getData()->toArray();
+
+        $this->assertEquals(
+            [
+                (object)[
+                    "source_id" => $otherUsers[0]->id,
+                    "target_id" => $accountsOfSameUser[0]->id,
+                    "weight" => 1,
+                ],
+                (object)[
+                    "source_id" => $otherUsers[1]->id,
+                    "target_id" => $accountsOfSameUser[0]->id,
+                    "weight" => 1,
+                ],
+                (object)[
+                    "source_id" => $otherUsers[2]->id,
+                    "target_id" => $accountsOfSameUser[1]->id,
+                    "weight" => 1,
+                ]],
+            $result
+        );
+    }
+
+    public function test_it_generates_a_weight_dictionary_accounting_for_duplicate_accounts()
+    {
+        list($accountsOfSameUser, $otherUsers) = $this->generateRecords();
+
+        $result = EdgeResource::getWeightDictionary()->toArray();
+
+        $this->assertEquals(
+            [
+                $otherUsers[0]->id . "_" . $accountsOfSameUser[0]->id => 1,
+                $otherUsers[1]->id . "_" . $accountsOfSameUser[0]->id => 1,
+                $otherUsers[2]->id . "_" . $accountsOfSameUser[0]->id => 1,
             ],
-            (object)[
-                "source_id" => $otherUsers[1]->id,
-                "target_id" => $accountsOfSameUser[0]->id,
-                "weight" => 1,
+            $result
+        );
+    }
+
+    public function test_it_generates_a_weight_dictionary_summing_up_weights_for_the_same_key()
+    {
+        list($accountsOfSameUser, $otherUsers, $growthSessions) = $this->generateRecords();
+        $accountsOfSameUser[1]->growthSessions()->attach($growthSessions[0], ['user_type_id' => UserType::ATTENDEE_ID]);
+
+        $result = EdgeResource::getWeightDictionary()->toArray();
+
+        $this->assertEquals(
+            [
+                $accountsOfSameUser[0]->id . "_" . $accountsOfSameUser[0]->id => 1,
+                $otherUsers[0]->id . "_" . $accountsOfSameUser[0]->id => 2,
+                $otherUsers[1]->id . "_" . $accountsOfSameUser[0]->id => 1,
+                $otherUsers[2]->id . "_" . $accountsOfSameUser[0]->id => 1,
             ],
-            (object)[
-                "source_id" => $otherUsers[2]->id,
-                "target_id" => $accountsOfSameUser[1]->id,
-                "weight" => 1,
-            ]],
-            $result);
+            $result
+        );
     }
 
-    public function test_it_merges_data_of_users_with_same_name()
+    public function test_it_generates_a_connections_dictionary()
     {
-    }
+        list($accountsOfSameUser, $otherUsers) = $this->generateRecords();
 
-    public function test_it_filters_out_users_outside_of_vehikl()
-    {
-    }
+        $result = EdgeResource::getConnections()->toArray();
 
-    public function test_it_sums_up_weights_for_the_same_key()
-    {
+        $this->assertEquals(
+            [
+                $accountsOfSameUser[0]->id => [$otherUsers[0]->id, $otherUsers[1]->id, $otherUsers[2]->id],
+                $otherUsers[0]->id => [$accountsOfSameUser[0]->id],
+                $otherUsers[1]->id => [$accountsOfSameUser[0]->id],
+                $otherUsers[2]->id => [$accountsOfSameUser[0]->id]
+            ],
+            $result
+        );
     }
 
     public function generateRecords(): array
@@ -73,6 +143,6 @@ class EdgeResourceTest extends TestCase
 
         $accountsOfSameUser[1]->growthSessions()->attach($growthSessions[2], ['user_type_id' => UserType::OWNER_ID]);
         $otherUsers[2]->growthSessions()->attach($growthSessions[2], ['user_type_id' => UserType::ATTENDEE_ID]);
-        return array($accountsOfSameUser, $otherUsers);
+        return array($accountsOfSameUser, $otherUsers, $growthSessions);
     }
 }

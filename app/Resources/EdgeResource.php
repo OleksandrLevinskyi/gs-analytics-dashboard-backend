@@ -45,7 +45,7 @@ class EdgeResource
 
     static function getConnections($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
-        $connections = NodeResource::get()->mapWithKeys(fn($e) => [$e->id => []])->toArray();
+        $connections = NodeResource::get($userBlackList)->mapWithKeys(fn($e) => [$e->id => []])->toArray();
         $idsToReplace = NodeResource::getDuplicatedIdsToReplace();
 
         self::getData()
