@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\DB;
 
 class EdgeResource
 {
-    static function get()
+    static function get($userBlackList = [18, 30, 42, 55, 60, 83, 106])
     {
-        $nodes = NodeResource::get();
+        $nodes = NodeResource::get($userBlackList);
         $weightDictionary = self::getWeightDictionary();
 
         return $nodes->reverse()
@@ -19,7 +19,9 @@ class EdgeResource
                         return [
                             'source' => $row->id,
                             'target' => $col->id,
-                            'weight' => $weightDictionary[$row->id . '_' . $col->id] ?? 0,
+                            'weight' => $row->id === $col->id ?
+                                0 :
+                                $weightDictionary[$row->id . '_' . $col->id] ?? 0,
                         ];
                     });
             });

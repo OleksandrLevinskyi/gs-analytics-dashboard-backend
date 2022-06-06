@@ -104,7 +104,7 @@ class EdgeResourceTest extends TestCase
     {
         list($accountsOfSameUser, $otherUsers) = $this->generateRecords();
 
-        $result = EdgeResource::getConnections()->toArray();
+        $result = EdgeResource::getConnections([])->toArray();
 
         $this->assertEquals(
             [
@@ -112,6 +112,70 @@ class EdgeResourceTest extends TestCase
                 $otherUsers[0]->id => [$accountsOfSameUser[0]->id],
                 $otherUsers[1]->id => [$accountsOfSameUser[0]->id],
                 $otherUsers[2]->id => [$accountsOfSameUser[0]->id]
+            ],
+            $result
+        );
+    }
+
+    public function test_it_gets_data_summing_up_weights_for_same_users()
+    {
+        list($accountsOfSameUser, $otherUsers, $growthSessions) = $this->generateRecords();
+        $accountsOfSameUser[1]->growthSessions()->attach($growthSessions[0], ['user_type_id' => UserType::ATTENDEE_ID]);
+
+        $result = EdgeResource::get([])->toArray();
+
+        $this->assertEquals(
+            [
+                [
+                    'source' => $otherUsers[2]->id,
+                    'target' => $accountsOfSameUser[0]->id,
+                    'weight' => 1
+                ],
+                [
+                    'source' => $otherUsers[2]->id,
+                    'target' => $otherUsers[0]->id,
+                    'weight' => 0
+                ],
+                [
+                    'source' => $otherUsers[2]->id,
+                    'target' => $otherUsers[1]->id,
+                    'weight' => 0
+                ],
+                [
+                    'source' => $otherUsers[2]->id,
+                    'target' => $otherUsers[2]->id,
+                    'weight' => 0
+                ],
+                [
+                    'source' => $otherUsers[1]->id,
+                    'target' => $accountsOfSameUser[0]->id,
+                    'weight' => 1
+                ],
+                [
+                    'source' => $otherUsers[1]->id,
+                    'target' => $otherUsers[0]->id,
+                    'weight' => 0
+                ],
+                [
+                    'source' => $otherUsers[1]->id,
+                    'target' => $otherUsers[1]->id,
+                    'weight' => 0
+                ],
+                [
+                    'source' => $otherUsers[0]->id,
+                    'target' => $accountsOfSameUser[0]->id,
+                    'weight' => 2
+                ],
+                [
+                    'source' => $otherUsers[0]->id,
+                    'target' => $otherUsers[0]->id,
+                    'weight' => 0
+                ],
+                [
+                    'source' => $accountsOfSameUser[0]->id,
+                    'target' => $accountsOfSameUser[0]->id,
+                    'weight' => 0
+                ],
             ],
             $result
         );
