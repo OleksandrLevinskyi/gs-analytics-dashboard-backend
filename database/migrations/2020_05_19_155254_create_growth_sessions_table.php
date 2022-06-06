@@ -12,8 +12,8 @@ class CreateGrowthSessionsTable extends Migration
             $table->id();
             $table->string('title')->nullable();
             $table->unsignedBigInteger('attendee_limit')->default(PHP_INT_MAX);
-            $table->string('discord_channel_id')->nullable(true)->after('location');
-            $table->boolean('is_public')->default(false)->after('end_time');
+            $table->string('discord_channel_id')->nullable(true);
+            $table->boolean('is_public')->default(false);
             $table->text('topic');
             $table->string('location');
             $table->date('date');

@@ -10,9 +10,9 @@ class CreateGrowthSessionUserTable extends Migration
     public function up()
     {
         Schema::create('growth_session_user', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('growth_session_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_type_id')->default(UserType::ATTENDEE_ID)->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->cascadeOnDelete();
+            $table->foreignId('growth_session_id')->cascadeOnDelete();
+            $table->foreignId('user_type_id')->default(UserType::ATTENDEE_ID)->cascadeOnDelete();
         });
     }
 
