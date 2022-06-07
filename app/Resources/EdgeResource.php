@@ -21,7 +21,7 @@ class EdgeResource
                             'target' => $col->id,
                             'weight' => $row->id === $col->id ?
                                 0 :
-                                $weightDictionary[$row->id . '_' . $col->id] ?? 0,
+                                $weightDictionary[$col->id . '_' . $row->id] ?? 0,
                         ];
                     });
             });
@@ -33,9 +33,9 @@ class EdgeResource
 
         $data = self::getData();
 
-        $result = $data->mapWithKeys(fn($e) => [self::getKey($e->source_id, $idsToReplace) . '_' . self::getKey($e->target_id, $idsToReplace) => 0]);
+        $result = $data->mapWithKeys(fn($e) => [self::getDictionaryKey($e, $idsToReplace) => 0]);
 
-        $data->each(fn($e) => $result[self::getKey($e->source_id, $idsToReplace) . '_' . self::getKey($e->target_id, $idsToReplace)] += $e->weight);
+        $data->each(fn($e) => $result[self::getDictionaryKey($e, $idsToReplace)] += $e->weight);
 
         return $result;
     }
@@ -43,6 +43,18 @@ class EdgeResource
     static function getKey($key, $stack)
     {
         return array_key_exists($key, $stack->toArray()) ? $stack[$key] : $key;
+    }
+
+    static function getDictionaryKey($e, $idsToReplace): string
+    {
+        $firstKeyPart = self::getKey($e->source_id, $idsToReplace);
+        $secondKeyPart = self::getKey($e->target_id, $idsToReplace);
+
+        if ($firstKeyPart <= $secondKeyPart) {
+            return $firstKeyPart . '_' . $secondKeyPart;
+        }
+
+        return $secondKeyPart . '_' . $firstKeyPart;
     }
 
     static function getConnections($userBlackList = [18, 30, 42, 55, 60, 83, 106])

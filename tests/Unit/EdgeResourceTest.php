@@ -74,9 +74,9 @@ class EdgeResourceTest extends TestCase
 
         $this->assertEquals(
             [
-                $otherUsers[0]->id . "_" . $accountsOfSameUser[0]->id => 1,
-                $otherUsers[1]->id . "_" . $accountsOfSameUser[0]->id => 1,
-                $otherUsers[2]->id . "_" . $accountsOfSameUser[0]->id => 1,
+                $accountsOfSameUser[0]->id . "_" . $otherUsers[0]->id => 1,
+                $accountsOfSameUser[0]->id . "_" . $otherUsers[1]->id => 1,
+                $accountsOfSameUser[0]->id . "_" . $otherUsers[2]->id => 1,
             ],
             $result
         );
@@ -92,9 +92,9 @@ class EdgeResourceTest extends TestCase
         $this->assertEquals(
             [
                 $accountsOfSameUser[0]->id . "_" . $accountsOfSameUser[0]->id => 1,
-                $otherUsers[0]->id . "_" . $accountsOfSameUser[0]->id => 2,
-                $otherUsers[1]->id . "_" . $accountsOfSameUser[0]->id => 1,
-                $otherUsers[2]->id . "_" . $accountsOfSameUser[0]->id => 1,
+                $accountsOfSameUser[0]->id . "_" . $otherUsers[0]->id => 2,
+                $accountsOfSameUser[0]->id . "_" . $otherUsers[1]->id => 1,
+                $accountsOfSameUser[0]->id . "_" . $otherUsers[2]->id => 1,
             ],
             $result
         );

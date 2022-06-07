@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 class NodeResourceTest extends TestCase
 {
-    public function test_it_merges_users_with_same_name()
+    public function test_it_merges_users_with_the_same_name()
     {
         $usersWithSameName = User::factory()
             ->count(2)
@@ -30,7 +30,7 @@ class NodeResourceTest extends TestCase
         );
     }
 
-    public function test_it_filters_out_users_outside_of_vehikl()
+    public function test_it_filters_out_users_outside_of_the_organization()
     {
         User::factory()->create();
 
