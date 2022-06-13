@@ -41,6 +41,16 @@ services:
     networks:
       - dashboard-app
 
+  proxy:
+      build: docker/proxy
+      restart: always
+      ports:
+          - 3006:80
+      depends_on:
+          - grafana
+      networks:
+          - dashboard-app
+
 networks:
   dashboard-app:
     driver: bridge
