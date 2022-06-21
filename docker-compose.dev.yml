@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mysql:5.7
+    container_name: dashboard-db
+    restart: unless-stopped
+    ports:
+      - 13306:3306
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_NAME: mysql
+    networks:
+      - dashboard-app
+
+  testing-db:
+      image: mysql:5.7
+      container_name: testing-db
+      restart: unless-stopped
+      ports:
+          - 23306:3306
+      environment:
+          MYSQL_DATABASE: ${DB_DATABASE}
+          MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+          MYSQL_PASSWORD: ${DB_PASSWORD}
+          MYSQL_USER: ${DB_USERNAME}
+          SERVICE_NAME: mysql
+      networks:
+          - dashboard-app
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    ports:
+      - 3005:3000
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - dashboard-app
+
+  proxy:
+      build: docker/proxy
+      restart: always
+      ports:
+          - 3006:80
+      depends_on:
+          - grafana
+      networks:
+          - dashboard-app
+
+networks:
+  dashboard-app:
+    driver: bridge
