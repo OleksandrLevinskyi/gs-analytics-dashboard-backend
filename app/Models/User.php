@@ -16,10 +16,8 @@ class User extends Authenticatable
     protected $table = 'users';
 
     protected $fillable = [
-        'github_nickname',
         'name',
         'email',
-        'avatar',
     ];
 
     protected $hidden = [
@@ -27,7 +25,6 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'is_vehikl_member' => 'boolean',
     ];
 
