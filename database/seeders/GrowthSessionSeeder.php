@@ -5,32 +5,30 @@ namespace Database\Seeders;
 use App\Models\GrowthSession;
 use App\Models\User;
 use App\Models\UserType;
-use Carbon\Carbon;
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 
 class GrowthSessionSeeder extends Seeder
 {
+    const NUMBER_OF_FAKE_GROWTH_SESSIONS = 100;
+    const NUMBER_OF_FAKE_USERS = 30;
+    const NUMBER_OF_MAX_ATTENDEES = 5;
+    const SUB_DAYS = 14;
+
     public function run()
     {
-        $MONDAY = 1;
-        $monday = today()->isDayOfWeek($MONDAY) ? CarbonImmutable::today() : CarbonImmutable::parse('Last Monday');
-        $numberOfFakeGrowthSessions = 5;
-        for ($i = 0; $i < $numberOfFakeGrowthSessions; $i++) {
-            $growthSession = GrowthSession::factory()->create([
-                'date' => $monday->addDays(random_int(0, 4)),
-                'start_time' => Carbon::createFromTime(random_int(15, 16))
-            ]);
-            $owner = User::factory()->vehiklMember()->create();
-            $owner->growthSessions()->attach($growthSession, ['user_type_id' => UserType::OWNER_ID]);
-        }
+        $users = User::factory()->count(self::NUMBER_OF_FAKE_USERS)->isVehiklMember()->create();
 
-        $growthSession = GrowthSession::factory()
-            ->hasAttached(User::factory()->vehiklMember(false), [], 'attendees')
-            ->create([
-                'title' => 'This one has guests',
-                'date' => $monday,
+        for ($i = 0; $i < self::NUMBER_OF_FAKE_GROWTH_SESSIONS; $i++) {
+            $growthSession = GrowthSession::factory()->create([
+                'date' => today()->subDays(rand(0, self::SUB_DAYS)),
             ]);
-        User::find(1)->growthSessions()->attach($growthSession, ['user_type_id' => UserType::OWNER_ID]);
+
+            $owner = $users[rand(0, self::NUMBER_OF_FAKE_USERS - 1)];
+            $owner->growthSessions()->attach($growthSession, ['user_type_id' => UserType::OWNER_ID]);
+
+            collect($users)
+                ->random(rand(1, self::NUMBER_OF_MAX_ATTENDEES))
+                ->each(fn($user) => $user->growthSessions()->attach($growthSession, ['user_type_id' => UserType::ATTENDEE_ID]));
+        }
     }
 }
