@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -42,11 +41,6 @@ class GrowthSession extends Model
         'attendee_limit' => self::NO_LIMIT,
     ];
 
-    public function getOwnerAttribute()
-    {
-        return $this->owners()->first();
-    }
-
     public function owners()
     {
         return $this->belongsToMany(User::class)->wherePivot('user_type_id', UserType::OWNER_ID);
@@ -62,11 +56,6 @@ class GrowthSession extends Model
         return $this->belongsToMany(User::class)->wherePivot('user_type_id', UserType::WATCHER_ID);
     }
 
-    public function comments()
-    {
-        return $this->hasMany(Comment::class)->orderByDesc('created_at');
-    }
-
     public function setDateAttribute($value)
     {
         $this->attributes['date'] = Carbon::parse($value)->format('Y-m-d');
@@ -80,39 +69,5 @@ class GrowthSession extends Model
     public function setEndTimeAttribute($value)
     {
         $this->attributes['end_time'] = Carbon::parse($value)->format('H:i');
-    }
-
-    public static function allInTheWeekOf(?string $referenceDate)
-    {
-        $referenceDate = CarbonImmutable::parse($referenceDate);
-
-        $startPoint = $referenceDate->isDayOfWeek(Carbon::MONDAY)
-            ? $referenceDate
-            : $referenceDate->modify('Last Monday');
-        $endPoint = $startPoint->addDays(4);
-
-        $allWeekGrowthSessions = GrowthSession::query()
-            ->whereDate('date', '>=', $startPoint)
-            ->whereDate('date', '<=', $endPoint)
-            ->orderBy('date')
-            ->orderBy('start_time')
-            ->get();
-
-        return $allWeekGrowthSessions;
-    }
-
-    public function scopeToday($query)
-    {
-        return $query->whereDate('date', today()->toDateString());
-    }
-
-    public function hasAttendee(User $attendee): bool
-    {
-        return !!$this->attendees->find($attendee);
-    }
-
-    public function hasWatcher(User $watcher): bool
-    {
-        return !!$this->watchers->find($watcher);
     }
 }

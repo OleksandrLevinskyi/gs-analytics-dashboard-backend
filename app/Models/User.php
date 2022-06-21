@@ -20,13 +20,10 @@ class User extends Authenticatable
         'name',
         'email',
         'avatar',
-        'password',
     ];
 
     protected $hidden = [
         'email',
-        'password',
-        'remember_token',
     ];
 
     protected $casts = [
@@ -37,10 +34,5 @@ class User extends Authenticatable
     public function growthSessions()
     {
         return $this->belongsToMany(GrowthSession::class)->wherePivot('user_type_id', UserType::OWNER_ID);
-    }
-
-    public function comments()
-    {
-        return $this->hasMany(Comment::class);
     }
 }
