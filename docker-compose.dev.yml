@@ -1,19 +1,4 @@
 services:
-  db:
-    image: mysql:5.7
-    container_name: dashboard-db
-    restart: unless-stopped
-    ports:
-      - 13306:3306
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
-      SERVICE_NAME: mysql
-    networks:
-      - dashboard-app
-
   testing-db:
       image: mysql:5.7
       container_name: testing-db
@@ -29,6 +14,21 @@ services:
       networks:
           - dashboard-app
 
+  db:
+    image: mysql:5.7
+    container_name: dashboard-db
+    restart: unless-stopped
+    ports:
+      - 13306:3306
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_NAME: mysql
+    networks:
+      - dashboard-app
+
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -42,13 +42,39 @@ services:
       - dashboard-app
 
   proxy:
-      build: docker/proxy
-      restart: always
-      ports:
-          - 3006:80
-      depends_on:
-          - grafana
-      networks:
+    container_name: proxy
+    build: docker/proxy
+    restart: always
+    ports:
+      - 3006:80
+    depends_on:
+      - grafana
+    networks:
+      - dashboard-app
+
+  frontend:
+    container_name: frontend
+    build: ../vehikl-growth-session-dashboard
+    ports:
+      - 3000:3000
+    stdin_open: true
+    tty: true
+    networks:
+      - dashboard-app
+
+  backend:
+        container_name: backend
+        build:
+          context: .
+          dockerfile: ./docker/php/Dockerfile
+        ports:
+          - 8001:8001
+        volumes:
+          - .:/usr/src/app
+          - ./public:/usr/src/app/public
+        depends_on:
+          - blog_db
+        networks:
           - dashboard-app
 
 networks:
