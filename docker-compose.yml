@@ -44,6 +44,8 @@ services:
             - 3000:3000
         stdin_open: true
         tty: true
+        environment:
+            - REACT_APP_GRAFANA_DASHBOARD_URL=http://localhost:3006/d/lrSbXj37k/gsad?orgId=1
         networks:
             - dashboard-app
 
