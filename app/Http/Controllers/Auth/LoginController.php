@@ -31,7 +31,7 @@ class LoginController extends Controller
         Auth::login($user);
 
         $hash = md5("github.{$githubUser->email}");
-        Cache::put("social_user.{$hash}", $user);
+        Cache::put("social_user.{$hash}", $githubUser);
 
         return redirect(config('app.spa_url'))->withCookie(cookie('hash', $hash, 0, null, null, null, false, true));
     }
