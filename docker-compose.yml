@@ -44,8 +44,8 @@ services:
             - 3000:3000
         stdin_open: true
         tty: true
-        environment:
-            - REACT_APP_GRAFANA_DASHBOARD_URL=http://localhost:3006/d/lrSbXj37k/gsad?orgId=1
+        volumes:
+            - ../vehikl-growth-session-dashboard:/app
         networks:
             - dashboard-app
 
@@ -60,7 +60,7 @@ services:
             - .:/usr/src/app
             - ./public:/usr/src/app/public
         depends_on:
-            - blog_db
+            - db
         networks:
             - dashboard-app
 
