@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -25,7 +27,7 @@ class LoginController extends Controller
         $user = User::query()->where('email', $githubUser->email)->where('is_vehikl_member', 1)->first();
 
         if (!$user) {
-            return redirect(config('app.spa_url').'/invalid-user');
+            return redirect(config('app.spa_url') . '/invalid-user');
         }
 
         Auth::login($user);
@@ -47,7 +49,11 @@ class LoginController extends Controller
 
     public function logout()
     {
-        Auth::logout();
+        try {
+            Auth::logout();
+        } catch (Exception $e) {
+            Log::info($e->getMessage());
+        }
 
         return redirect(config('app.spa_url'));
     }
