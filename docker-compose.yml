@@ -23,15 +23,18 @@ services:
             - 3005:3000
         volumes:
             - ./docker/grafana/provisioning:/etc/grafana/provisioning
+            - ./grafana-config:/usr/share/grafana/conf
         networks:
             - dashboard-app
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
 
     proxy:
         container_name: proxy
         build: docker/proxy
         restart: always
         ports:
-            - 3006:80
+            - 0.0.0.0:3006:80
         depends_on:
             - grafana
         networks:
@@ -63,6 +66,8 @@ services:
             - db
         networks:
             - dashboard-app
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
 
 networks:
     dashboard-app:
