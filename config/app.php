@@ -232,5 +232,7 @@ return [
 
     ],
 
-    'spa_url' => env('SPA_URL')
+    'spa_url' => env('SPA_URL'),
+
+    'grafana_domain' => env('GRAFANA_DOMAIN'),
 ];

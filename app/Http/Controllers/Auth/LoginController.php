@@ -7,6 +7,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -35,7 +36,10 @@ class LoginController extends Controller
         $hash = md5("github.{$githubUser->email}");
         Cache::put("social_user.{$hash}", $githubUser);
 
-        return redirect(config('app.spa_url'))->withCookie(cookie('hash', $hash, 0, null, null, null, false, true));
+        $hashCookie = cookie('hash', $hash, 0, null, null, null, false, true);
+
+        return redirect(config('app.spa_url'))
+            ->withCookie($hashCookie);
     }
 
     public function getSocialUser($userHash)
@@ -55,6 +59,8 @@ class LoginController extends Controller
             Log::info($e->getMessage());
         }
 
-        return redirect(config('app.spa_url'));
+        return redirect(config('app.spa_url'))
+            ->withoutCookie('hash')
+            ->withoutCookie('grafana_session', '/', config('app.grafana_domain'));
     }
 }
