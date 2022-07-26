@@ -5,6 +5,7 @@ namespace App\Resources;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class NodeResource
 {
@@ -16,7 +17,14 @@ class NodeResource
             ->select('id', 'name')
             ->where('is_vehikl_member', 1)
             ->whereNotIn('id', $idsToExclude)
-            ->get();
+            ->get()
+            ->map(function ($user) {
+                if (Str::length($user->name) > 20) {
+                    $user->name = Str::substr($user->name, 0, 17) . '...';
+                }
+
+                return $user;
+            });
     }
 
     static function getDuplicatedIdsToReplace()
