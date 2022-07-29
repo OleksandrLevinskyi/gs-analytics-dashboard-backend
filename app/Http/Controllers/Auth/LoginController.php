@@ -59,8 +59,10 @@ class LoginController extends Controller
             Log::info($e->getMessage());
         }
 
+        Cookie::queue('grafana_session', null, -1, config('app.grafana_domain'));
+
         return redirect(config('app.spa_url'))
             ->withoutCookie('hash')
-            ->withoutCookie('grafana_session', '/', config('app.grafana_domain'));
+            ->withoutCookie('grafana_session', '/', '.' . config('app.grafana_domain'));
     }
 }
