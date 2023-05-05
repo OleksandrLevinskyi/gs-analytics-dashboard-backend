@@ -72,6 +72,7 @@
             },
             "id": 22,
             "options": {
+                "barRadius": 0,
                 "barWidth": 1,
                 "groupWidth": 0.86,
                 "legend": {
@@ -84,17 +85,19 @@
                 "stacking": "none",
                 "text": {},
                 "tooltip": {
-                    "mode": "single"
-                }
+                    "mode": "single",
+                    "sort": "none"
+                },
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
             },
-            "pluginVersion": "8.2.3",
             "targets": [
                 {
                     "format": "table",
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT gs_count.host_name, total_gs hosted_growth_sessions, count total_number_of_attendees\nFROM (\n\tSELECT u.name host_name, COUNT(growth_session_id) total_gs\n\tFROM growth_session_user gsu\n\tJOIN users u ON u.id = gsu.user_id\n\tJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n\tWHERE gsu.user_type_id = 1 AND gs.date BETWEEN '$from' AND '$to'\n\tGROUP BY gsu.user_id\n) gs_count\nJOIN\n(\n\tSELECT COUNT(user_id) count, u.name host_name\n\tFROM (\n\tSELECT user_id, gsu.growth_session_id, gs_owners.owner_id\n\t\tFROM growth_session_user gsu\n\t\tJOIN (\n\t\t\tSELECT gsu.growth_session_id gs_id, user_id owner_id\n\t\t\tFROM growth_session_user gsu\n\t\t\tWHERE gsu.user_type_id = 1\n\t\t\t) gs_owners \n\t\t\tON gs_owners.gs_id = gsu.growth_session_id\n\t\tJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n\t\tWHERE gs.date BETWEEN '$from' AND '$to'\n\t) data\n\tJOIN users u ON u.id = data.owner_id \n\tGROUP BY owner_id\n) user_count ON gs_count.host_name = user_count.host_name\nORDER BY total_gs DESC\nLIMIT 10;",
+                    "rawSql": "SELECT gs_count.host_name, total_gs hosted_growth_sessions, count total_number_of_attendees\nFROM (\n\tSELECT u.name host_name, COUNT(growth_session_id) total_gs\n\tFROM growth_session_user gsu\n\tJOIN users u ON u.id = gsu.user_id\n\tJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n\tWHERE gsu.user_type_id = 1 AND gs.date BETWEEN '$from' AND '$to'\n\tGROUP BY gsu.user_id\n) gs_count\nJOIN\n(\n\tSELECT COUNT(user_id) count, u.name host_name\n\tFROM (\n\tSELECT user_id, gsu.growth_session_id, gs_owners.owner_id\n\t\tFROM growth_session_user gsu\n\t\tJOIN (\n  \t\t\tSELECT gsu.growth_session_id gs_id, user_id owner_id\n  \t\t\tFROM growth_session_user gsu\n  \t\t\tWHERE gsu.user_type_id = 1\n\t\t\t) gs_owners \n\t\t\tON gs_owners.gs_id = gsu.growth_session_id\n\t\tJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n\t\tWHERE gs.date BETWEEN '$from' AND '$to'\n\t) data\n\tJOIN users u ON u.id = data.owner_id\n\tGROUP BY owner_id\n) user_count ON gs_count.host_name = user_count.host_name\nORDER BY total_gs DESC\nLIMIT 10;",
                     "refId": "A",
                     "select": [
                         [
@@ -124,83 +127,6 @@
         },
         {
             "datasource": null,
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "#dd5f13",
-                                "value": null
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 5,
-                "x": 0,
-                "y": 8
-            },
-            "id": 9,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "text": {},
-                "textMode": "auto"
-            },
-            "pluginVersion": "8.2.3",
-            "targets": [
-                {
-                    "format": "table",
-                    "group": [],
-                    "metricColumn": "none",
-                    "rawQuery": true,
-                    "rawSql": "SELECT\n  MAX(attendee_count.count)\nFROM\n(\n  SELECT count(user_id) as count\n  FROM growth_session_user gsu\n  JOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n  WHERE gs.date BETWEEN '$from' AND '$to'\n  GROUP BY growth_session_id\n) as attendee_count\n",
-                    "refId": "A",
-                    "select": [
-                        [
-                            {
-                                "params": [
-                                    "id"
-                                ],
-                                "type": "column"
-                            }
-                        ]
-                    ],
-                    "table": "users",
-                    "timeColumn": "created_at",
-                    "timeColumnType": "timestamp",
-                    "where": [
-                        {
-                            "name": "$__timeFilter",
-                            "params": [],
-                            "type": "macro"
-                        }
-                    ]
-                }
-            ],
-            "title": "max_gs_attendees",
-            "transparent": true,
-            "type": "stat"
-        },
-        {
-            "datasource": null,
             "description": "",
             "fieldConfig": {
                 "defaults": {
@@ -210,7 +136,7 @@
                     "custom": {
                         "align": "center",
                         "displayMode": "color-text",
-                        "filterable": true
+                        "filterable": false
                     },
                     "mappings": [],
                     "thresholds": {
@@ -267,13 +193,20 @@
                 ]
             },
             "gridPos": {
-                "h": 15,
-                "w": 14,
-                "x": 5,
+                "h": 12,
+                "w": 12,
+                "x": 0,
                 "y": 8
             },
             "id": 23,
             "options": {
+                "footer": {
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
                 "showHeader": true,
                 "sortBy": [
                     {
@@ -289,7 +222,7 @@
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT u1.name user_1, COUNT(data.user_id1) times_mobbed_together, u2.name user_2\nFROM (\n  SELECT gsu1.user_id as user_id1, \n  \t\tgsu2.user_id as user_id2 \n  FROM (\n  \tSELECT *\n  \tFROM growth_session_user gsu\n  \tJOIN users u ON u.id = gsu.user_id\n  \tWHERE u.is_vehikl_member = 1 \n  ) gsu1\n  JOIN (\n  \tSELECT *\n  \tFROM growth_session_user gsu\n  \tJOIN users u ON u.id = gsu.user_id\n  \tWHERE u.is_vehikl_member = 1 \n  ) gsu2\n  ON gsu1.growth_session_id = gsu2.growth_session_id AND gsu1.user_id <> gsu2.user_id\n\tJOIN growth_sessions gs ON gs.id = gsu1.growth_session_id\n\tWHERE gs.date BETWEEN '$from' AND '$to'\n\t) data\nJOIN users u1 ON u1.id = data.user_id1\nJOIN users u2 ON u2.id = data.user_id2\nGROUP BY data.user_id1, data.user_id2\nORDER BY times_mobbed_together DESC;",
+                    "rawSql": "SELECT u1.name as user_1,\n\tCOUNT(CONCAT(gsu1.user_id, '_', gsu2.user_id)) times_mobbed_together,\n\tu2.name as user_2\nFROM growth_session_user gsu1\nJOIN growth_session_user gsu2\n\tON gsu1.growth_session_id = gsu2.growth_session_id AND \n\tgsu1.user_id <> gsu2.user_id\nJOIN users u1 ON gsu1.user_id = u1.id\nJOIN users u2 ON gsu2.user_id = u2.id\nJOIN growth_sessions gs ON gs.id = gsu1.growth_session_id\nWHERE u1.is_vehikl_member = 1 AND \n\tu2.is_vehikl_member = 1 AND\n  gsu1.user_id > gsu2.user_id AND\n  gs.date BETWEEN '$from' AND '$to'\nGROUP BY gsu1.user_id, gsu2.user_id\nORDER BY times_mobbed_together DESC\nLIMIT 10;",
                     "refId": "A",
                     "select": [
                         [
@@ -319,314 +252,6 @@
         },
         {
             "datasource": null,
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "#dd5f13",
-                                "value": null
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 5,
-                "x": 19,
-                "y": 8
-            },
-            "id": 10,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "text": {},
-                "textMode": "auto"
-            },
-            "pluginVersion": "8.2.3",
-            "targets": [
-                {
-                    "format": "table",
-                    "group": [],
-                    "metricColumn": "none",
-                    "rawQuery": true,
-                    "rawSql": "SELECT AVG(attendee_count.count)\nFROM\n(\n  SELECT COUNT(user_id) count\n  FROM growth_session_user gsu\n  JOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n  WHERE gsu.user_type_id = 2 AND gs.date BETWEEN '$from' AND '$to'\n  GROUP BY growth_session_id\n) attendee_count;",
-                    "refId": "A",
-                    "select": [
-                        [
-                            {
-                                "params": [
-                                    "id"
-                                ],
-                                "type": "column"
-                            }
-                        ]
-                    ],
-                    "table": "users",
-                    "timeColumn": "created_at",
-                    "timeColumnType": "timestamp",
-                    "where": [
-                        {
-                            "name": "$__timeFilter",
-                            "params": [],
-                            "type": "macro"
-                        }
-                    ]
-                }
-            ],
-            "title": "avg_attendees_per_gs",
-            "transparent": true,
-            "type": "stat"
-        },
-        {
-            "datasource": null,
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "#dd5f13",
-                                "value": null
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 5,
-                "x": 0,
-                "y": 11
-            },
-            "id": 8,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "text": {},
-                "textMode": "auto"
-            },
-            "pluginVersion": "8.2.3",
-            "targets": [
-                {
-                    "format": "table",
-                    "group": [],
-                    "metricColumn": "none",
-                    "rawQuery": true,
-                    "rawSql": "SELECT MAX(growth_sessions_count.count)\nFROM\n(\n  SELECT COUNT(id) count\n  FROM growth_sessions gs\n  WHERE gs.date BETWEEN '$from' AND '$to'\n  GROUP BY gs.date\n) growth_sessions_count;\n\n\n",
-                    "refId": "A",
-                    "select": [
-                        [
-                            {
-                                "params": [
-                                    "id"
-                                ],
-                                "type": "column"
-                            }
-                        ]
-                    ],
-                    "table": "users",
-                    "timeColumn": "created_at",
-                    "timeColumnType": "timestamp",
-                    "where": [
-                        {
-                            "name": "$__timeFilter",
-                            "params": [],
-                            "type": "macro"
-                        }
-                    ]
-                }
-            ],
-            "title": "max_number_of_gs_hosted_in_a_day",
-            "transparent": true,
-            "type": "stat"
-        },
-        {
-            "datasource": null,
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "#dd5f13",
-                                "value": null
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 5,
-                "x": 19,
-                "y": 11
-            },
-            "id": 17,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "text": {},
-                "textMode": "auto"
-            },
-            "pluginVersion": "8.2.3",
-            "targets": [
-                {
-                    "format": "table",
-                    "group": [],
-                    "metricColumn": "none",
-                    "rawQuery": true,
-                    "rawSql": "select\n\tAVG(length)\nfrom (\n\tSELECT (TIME_TO_SEC(end_time) - TIME_TO_SEC(start_time))/60 \n\tas length\n\tfrom growth_sessions\n) as gs_length;\n",
-                    "refId": "A",
-                    "select": [
-                        [
-                            {
-                                "params": [
-                                    "id"
-                                ],
-                                "type": "column"
-                            }
-                        ]
-                    ],
-                    "table": "comments",
-                    "timeColumn": "created_at",
-                    "timeColumnType": "timestamp",
-                    "where": [
-                        {
-                            "name": "$__timeFilter",
-                            "params": [],
-                            "type": "macro"
-                        }
-                    ]
-                }
-            ],
-            "title": "avg_gs_duration",
-            "transparent": true,
-            "type": "stat"
-        },
-        {
-            "datasource": null,
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "#dd5f13",
-                                "value": null
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 5,
-                "x": 0,
-                "y": 14
-            },
-            "id": 7,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "text": {},
-                "textMode": "auto"
-            },
-            "pluginVersion": "8.2.3",
-            "targets": [
-                {
-                    "format": "table",
-                    "group": [],
-                    "metricColumn": "none",
-                    "rawQuery": true,
-                    "rawSql": "SELECT AVG(growth_sessions_count.count)\nFROM\n(\n  SELECT COUNT(id) count\n  FROM growth_sessions gs\n  WHERE gs.date BETWEEN '$from' AND '$to'\n  GROUP BY gs.date\n) growth_sessions_count;\n\n\n",
-                    "refId": "A",
-                    "select": [
-                        [
-                            {
-                                "params": [
-                                    "id"
-                                ],
-                                "type": "column"
-                            }
-                        ]
-                    ],
-                    "table": "users",
-                    "timeColumn": "created_at",
-                    "timeColumnType": "timestamp",
-                    "where": [
-                        {
-                            "name": "$__timeFilter",
-                            "params": [],
-                            "type": "macro"
-                        }
-                    ]
-                }
-            ],
-            "title": "avg_number_of_daily_gs",
-            "transparent": true,
-            "type": "stat"
-        },
-        {
-            "datasource": null,
             "description": "",
             "fieldConfig": {
                 "defaults": {
@@ -648,9 +273,9 @@
             },
             "gridPos": {
                 "h": 3,
-                "w": 5,
-                "x": 19,
-                "y": 14
+                "w": 4,
+                "x": 12,
+                "y": 8
             },
             "id": 11,
             "options": {
@@ -734,9 +359,471 @@
             },
             "gridPos": {
                 "h": 3,
-                "w": 5,
-                "x": 0,
-                "y": 17
+                "w": 4,
+                "x": 16,
+                "y": 8
+            },
+            "id": 9,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {},
+                "textMode": "auto"
+            },
+            "pluginVersion": "8.2.3",
+            "targets": [
+                {
+                    "format": "table",
+                    "group": [],
+                    "metricColumn": "none",
+                    "rawQuery": true,
+                    "rawSql": "SELECT MAX(attendee_count.count)\nFROM\n(\n  SELECT count(user_id) count\n  FROM growth_session_user gsu\n  JOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n  WHERE gs.date BETWEEN '$from' AND '$to'\n  GROUP BY growth_session_id\n) attendee_count;\n",
+                    "refId": "A",
+                    "select": [
+                        [
+                            {
+                                "params": [
+                                    "id"
+                                ],
+                                "type": "column"
+                            }
+                        ]
+                    ],
+                    "table": "users",
+                    "timeColumn": "created_at",
+                    "timeColumnType": "timestamp",
+                    "where": [
+                        {
+                            "name": "$__timeFilter",
+                            "params": [],
+                            "type": "macro"
+                        }
+                    ]
+                }
+            ],
+            "title": "max_gs_attendees",
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "#dd5f13",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 4,
+                "x": 20,
+                "y": 8
+            },
+            "id": 10,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {},
+                "textMode": "auto"
+            },
+            "pluginVersion": "8.2.3",
+            "targets": [
+                {
+                    "format": "table",
+                    "group": [],
+                    "metricColumn": "none",
+                    "rawQuery": true,
+                    "rawSql": "SELECT AVG(attendee_count.count)\nFROM\n(\n  SELECT COUNT(user_id) count\n  FROM growth_session_user gsu\n  JOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n  WHERE gsu.user_type_id = 2 AND \n        gs.date BETWEEN '$from' AND '$to'\n  GROUP BY growth_session_id\n) attendee_count;",
+                    "refId": "A",
+                    "select": [
+                        [
+                            {
+                                "params": [
+                                    "id"
+                                ],
+                                "type": "column"
+                            }
+                        ]
+                    ],
+                    "table": "users",
+                    "timeColumn": "created_at",
+                    "timeColumnType": "timestamp",
+                    "where": [
+                        {
+                            "name": "$__timeFilter",
+                            "params": [],
+                            "type": "macro"
+                        }
+                    ]
+                }
+            ],
+            "title": "avg_attendees_per_gs",
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "#dd5f13",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 4,
+                "x": 12,
+                "y": 11
+            },
+            "id": 28,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {},
+                "textMode": "auto"
+            },
+            "pluginVersion": "8.2.3",
+            "targets": [
+                {
+                    "format": "table",
+                    "group": [],
+                    "metricColumn": "none",
+                    "rawQuery": true,
+                    "rawSql": "SELECT SUM(length)\nFROM (\n\tSELECT (TIME_TO_SEC(end_time) - TIME_TO_SEC(start_time))/60/60 length\n\tFROM growth_sessions gs\n  WHERE gs.date BETWEEN '$from' AND '$to'\n) gs_length;\n",
+                    "refId": "A",
+                    "select": [
+                        [
+                            {
+                                "params": [
+                                    "id"
+                                ],
+                                "type": "column"
+                            }
+                        ]
+                    ],
+                    "table": "users",
+                    "timeColumn": "created_at",
+                    "timeColumnType": "timestamp",
+                    "where": [
+                        {
+                            "name": "$__timeFilter",
+                            "params": [],
+                            "type": "macro"
+                        }
+                    ]
+                }
+            ],
+            "title": "total_hrs_spent_on_gs",
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "#dd5f13",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 4,
+                "x": 16,
+                "y": 11
+            },
+            "id": 8,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {},
+                "textMode": "auto"
+            },
+            "pluginVersion": "8.2.3",
+            "targets": [
+                {
+                    "format": "table",
+                    "group": [],
+                    "metricColumn": "none",
+                    "rawQuery": true,
+                    "rawSql": "SELECT MAX(growth_sessions_count.count)\nFROM\n(\n  SELECT COUNT(id) count\n  FROM growth_sessions gs\n  WHERE gs.date BETWEEN '$from' AND '$to'\n  GROUP BY gs.date\n) growth_sessions_count;\n\n\n",
+                    "refId": "A",
+                    "select": [
+                        [
+                            {
+                                "params": [
+                                    "id"
+                                ],
+                                "type": "column"
+                            }
+                        ]
+                    ],
+                    "table": "users",
+                    "timeColumn": "created_at",
+                    "timeColumnType": "timestamp",
+                    "where": [
+                        {
+                            "name": "$__timeFilter",
+                            "params": [],
+                            "type": "macro"
+                        }
+                    ]
+                }
+            ],
+            "title": "max_number_of_gs_hosted_in_a_day",
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "#dd5f13",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 4,
+                "x": 20,
+                "y": 11
+            },
+            "id": 7,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {},
+                "textMode": "auto"
+            },
+            "pluginVersion": "8.2.3",
+            "targets": [
+                {
+                    "format": "table",
+                    "group": [],
+                    "metricColumn": "none",
+                    "rawQuery": true,
+                    "rawSql": "SELECT AVG(growth_sessions_count.count)\nFROM\n(\n  SELECT COUNT(id) count\n  FROM growth_sessions gs\n  WHERE gs.date BETWEEN '$from' AND '$to'\n  GROUP BY gs.date\n) growth_sessions_count;\n\n\n",
+                    "refId": "A",
+                    "select": [
+                        [
+                            {
+                                "params": [
+                                    "id"
+                                ],
+                                "type": "column"
+                            }
+                        ]
+                    ],
+                    "table": "users",
+                    "timeColumn": "created_at",
+                    "timeColumnType": "timestamp",
+                    "where": [
+                        {
+                            "name": "$__timeFilter",
+                            "params": [],
+                            "type": "macro"
+                        }
+                    ]
+                }
+            ],
+            "title": "avg_number_of_daily_gs",
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "#dd5f13",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 4,
+                "x": 12,
+                "y": 14
+            },
+            "id": 12,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {},
+                "textMode": "auto"
+            },
+            "pluginVersion": "8.2.3",
+            "targets": [
+                {
+                    "format": "table",
+                    "group": [],
+                    "metricColumn": "none",
+                    "rawQuery": true,
+                    "rawSql": "SELECT COUNT(DISTINCT email)\nFROM users u\nJOIN growth_session_user gsu ON u.id = gsu.user_id\nJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\nWHERE gs.date BETWEEN '$from' AND '$to';\n",
+                    "refId": "A",
+                    "select": [
+                        [
+                            {
+                                "params": [
+                                    "id"
+                                ],
+                                "type": "column"
+                            }
+                        ]
+                    ],
+                    "table": "users",
+                    "timeColumn": "created_at",
+                    "timeColumnType": "timestamp",
+                    "where": [
+                        {
+                            "name": "$__timeFilter",
+                            "params": [],
+                            "type": "macro"
+                        }
+                    ]
+                }
+            ],
+            "title": "total_unique_participants",
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "#dd5f13",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 4,
+                "x": 16,
+                "y": 14
             },
             "id": 19,
             "options": {
@@ -761,7 +848,7 @@
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT count(gsu.growth_session_id) guest_attendee_count \nFROM growth_session_user gsu\nJOIN users u ON gsu.user_id = u.id\nJOIN growth_sessions gs ON gsu.growth_session_id = gs.id\nWHERE gsu.user_type_id = 2 AND gs.is_public = 1 AND gs.date BETWEEN '$from' AND '$to' AND u.is_vehikl_member = 0\nGROUP BY gsu.growth_session_id\nORDER BY guest_attendee_count DESC\nLIMIT 1;",
+                    "rawSql": "SELECT count(gsu.growth_session_id) guest_attendee_count \nFROM growth_session_user gsu\nJOIN users u ON gsu.user_id = u.id\nJOIN growth_sessions gs ON gsu.growth_session_id = gs.id\nWHERE gsu.user_type_id = 2 AND \n      gs.is_public = 1 AND \n      gs.date BETWEEN '$from' AND '$to' AND \n      u.is_vehikl_member = 0\nGROUP BY gsu.growth_session_id\nORDER BY guest_attendee_count DESC\nLIMIT 1;",
                     "refId": "A",
                     "select": [
                         [
@@ -811,11 +898,11 @@
             },
             "gridPos": {
                 "h": 3,
-                "w": 5,
-                "x": 19,
-                "y": 17
+                "w": 4,
+                "x": 20,
+                "y": 14
             },
-            "id": 6,
+            "id": 17,
             "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -838,7 +925,7 @@
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT COUNT(DISTINCT github_nickname)\nFROM users\nWHERE is_vehikl_member = 0;",
+                    "rawSql": "SELECT AVG(length)\nFROM (\n\tSELECT (TIME_TO_SEC(end_time) - TIME_TO_SEC(start_time))/60 length\n\tFROM growth_sessions gs\n  WHERE gs.date BETWEEN '$from' AND '$to'\n) gs_length;\n",
                     "refId": "A",
                     "select": [
                         [
@@ -850,7 +937,7 @@
                             }
                         ]
                     ],
-                    "table": "users",
+                    "table": "comments",
                     "timeColumn": "created_at",
                     "timeColumnType": "timestamp",
                     "where": [
@@ -862,7 +949,7 @@
                     ]
                 }
             ],
-            "title": "total_unique_guests",
+            "title": "avg_gs_duration",
             "transparent": true,
             "type": "stat"
         },
@@ -888,11 +975,11 @@
             },
             "gridPos": {
                 "h": 3,
-                "w": 5,
-                "x": 0,
-                "y": 20
+                "w": 4,
+                "x": 12,
+                "y": 17
             },
-            "id": 12,
+            "id": 6,
             "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -915,7 +1002,7 @@
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT COUNT(DISTINCT github_nickname)\nFROM users u\nJOIN growth_session_user gsu ON u.id = gsu.user_id\nJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\nWHERE gs.date BETWEEN '$from' AND '$to'\n",
+                    "rawSql": "SELECT COUNT(DISTINCT email)\nFROM users u\nJOIN growth_session_user gsu ON gsu.user_id = u.id\nJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\nWHERE gs.date BETWEEN '$from' AND '$to' AND\n      u.is_vehikl_member = 0;",
                     "refId": "A",
                     "select": [
                         [
@@ -939,7 +1026,7 @@
                     ]
                 }
             ],
-            "title": "total_unique_participants",
+            "title": "total_unique_guests",
             "transparent": true,
             "type": "stat"
         },
@@ -997,7 +1084,7 @@
                 "h": 11,
                 "w": 5,
                 "x": 0,
-                "y": 23
+                "y": 20
             },
             "id": 4,
             "options": {
@@ -1016,7 +1103,8 @@
                     "values": false
                 },
                 "tooltip": {
-                    "mode": "single"
+                    "mode": "single",
+                    "sort": "none"
                 }
             },
             "targets": [
@@ -1033,7 +1121,7 @@
                     ],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT COUNT(is_public) public\nFROM growth_sessions gs\nWHERE gs.date BETWEEN '$from' AND '$to' AND is_public = 1;",
+                    "rawSql": "SELECT COUNT(is_public) public\nFROM growth_sessions gs\nWHERE gs.date BETWEEN '$from' AND '$to' AND \n      is_public = 1;",
                     "refId": "Public Growth Sessions",
                     "select": [
                         [
@@ -1248,7 +1336,7 @@
                 "h": 11,
                 "w": 19,
                 "x": 5,
-                "y": 23
+                "y": 20
             },
             "id": 25,
             "options": {
@@ -1258,7 +1346,8 @@
                     "placement": "bottom"
                 },
                 "tooltip": {
-                    "mode": "multi"
+                    "mode": "multi",
+                    "sort": "none"
                 }
             },
             "targets": [
@@ -1267,7 +1356,7 @@
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT time, COUNT(growth_session_id) total_gs, SUM(user_count) total_attendees\nFROM (\n\tSELECT growth_session_id, COUNT(user_id) user_count, CAST(date as datetime) time\n\tFROM growth_session_user gsu\n\tJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n  WHERE gs.date BETWEEN '$from' AND '$to'\n\tGROUP BY growth_session_id\n) data\nGROUP BY time;",
+                    "rawSql": "SELECT time, COUNT(growth_session_id) total_gs, SUM(user_count) total_attendees\nFROM (\n\tSELECT growth_session_id, COUNT(user_id) user_count, CONVERT_TZ(CAST(date as datetime),'-4:00','+0:00') time\n\tFROM growth_session_user gsu\n\tJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\n  WHERE gs.date BETWEEN '$from' AND '$to'\n\tGROUP BY growth_session_id\n\tORDER BY time\n) data\nGROUP BY time;",
                     "refId": "A",
                     "select": [
                         [
@@ -1357,10 +1446,11 @@
                 "h": 11,
                 "w": 19,
                 "x": 0,
-                "y": 34
+                "y": 31
             },
             "id": 15,
             "options": {
+                "barRadius": 0,
                 "barWidth": 0.43,
                 "groupWidth": 0.7,
                 "legend": {
@@ -1375,17 +1465,19 @@
                     "valueSize": 23
                 },
                 "tooltip": {
-                    "mode": "single"
-                }
+                    "mode": "single",
+                    "sort": "none"
+                },
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
             },
-            "pluginVersion": "8.2.3",
             "targets": [
                 {
                     "format": "table",
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT u.name, COUNT(growth_session_id) total_gs \nFROM growth_session_user gsu\nJOIN users u ON u.id = gsu.user_id\nJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\nWHERE gsu.user_type_id = 2 AND gs.date BETWEEN '$from' AND '$to'\nGROUP BY gsu.user_id\nORDER BY total_gs DESC\nLIMIT 10;",
+                    "rawSql": "SELECT u.name, COUNT(growth_session_id) total_gs \nFROM growth_session_user gsu\nJOIN users u ON u.id = gsu.user_id\nJOIN growth_sessions gs ON gs.id = gsu.growth_session_id\nWHERE gsu.user_type_id = 2 AND \n      gs.date BETWEEN '$from' AND '$to'\nGROUP BY gsu.user_id\nORDER BY total_gs DESC\nLIMIT 10;",
                     "refId": "A",
                     "select": [
                         [
@@ -1409,8 +1501,6 @@
                     ]
                 }
             ],
-            "timeFrom": null,
-            "timeShift": null,
             "title": "top_users_with_most_attended_gs",
             "transparent": true,
             "type": "barchart"
@@ -1468,7 +1558,7 @@
                 "h": 11,
                 "w": 5,
                 "x": 19,
-                "y": 34
+                "y": 31
             },
             "id": 27,
             "options": {
@@ -1485,7 +1575,8 @@
                     "values": false
                 },
                 "tooltip": {
-                    "mode": "single"
+                    "mode": "single",
+                    "sort": "none"
                 }
             },
             "targets": [
@@ -1494,7 +1585,7 @@
                     "group": [],
                     "metricColumn": "none",
                     "rawQuery": true,
-                    "rawSql": "SELECT SUM(count) gs_with_limit\nFROM (\n\tSELECT COUNT(id) count\n\tFROM growth_sessions gs\n\tWHERE attendee_limit < 1000 AND gs.date BETWEEN '$from' AND '$to'\n\tGROUP BY attendee_limit\n) data;",
+                    "rawSql": "SELECT SUM(count) gs_with_limit\nFROM (\n\tSELECT COUNT(id) count\n\tFROM growth_sessions gs\n\tWHERE attendee_limit < 1000 AND \n\t      gs.date BETWEEN '$from' AND '$to'\n\tGROUP BY attendee_limit\n) data;",
                     "refId": "with_limit",
                     "select": [
                         [
