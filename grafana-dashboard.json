@@ -1,31 +1,4 @@
 {
-    "annotations": {
-        "list": [
-            {
-                "builtIn": 1,
-                "datasource": "-- Grafana --",
-                "enable": true,
-                "hide": true,
-                "iconColor": "rgba(0, 211, 255, 1)",
-                "name": "Annotations & Alerts",
-                "target": {
-                    "limit": 100,
-                    "matchAny": false,
-                    "tags": [],
-                    "type": "dashboard"
-                },
-                "type": "dashboard"
-            }
-        ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "gnetId": null,
-    "graphTooltip": 0,
-    "id": 1,
-    "iteration": 1641848302136,
-    "links": [],
-    "liveNow": false,
     "panels": [
         {
             "datasource": null,
@@ -1643,9 +1616,6 @@
             "type": "piechart"
         }
     ],
-    "schemaVersion": 31,
-    "style": "dark",
-    "tags": [],
     "templating": {
         "list": [
             {
@@ -1705,14 +1675,5 @@
                 "type": "custom"
             }
         ]
-    },
-    "time": {
-        "from": "2021-05-28T04:00:00.000Z",
-        "to": "now"
-    },
-    "timepicker": {},
-    "timezone": "",
-    "title": "stats",
-    "uid": "ndxFSP07k",
-    "version": 25
+    }
 }

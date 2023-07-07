@@ -12,7 +12,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name,
+            'name' => $this->faker->firstName,
             'email' => $this->faker->unique()->safeEmail,
             'is_vehikl_member' => false,
         ];
@@ -21,7 +21,7 @@ class UserFactory extends Factory
     public function isVehiklMember(bool $vehiklMember = true)
     {
         return $this->state([
-            'is_vehikl_member' => $vehiklMember
+            'is_vehikl_member' => $vehiklMember,
         ]);
     }
 }

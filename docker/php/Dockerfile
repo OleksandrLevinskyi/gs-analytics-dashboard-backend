@@ -1,4 +1,4 @@
-FROM php:7.4-fpm
+FROM php:8.1.0-fpm
 # Install dockerize so we can wait for containers to be ready
 ENV DOCKERIZE_VERSION 0.6.1
 RUN curl -s -f -L -o /tmp/dockerize.tar.gz https://github.com/jwilder/dockerize/releases/download/v$DOCKERIZE_VERSION/dockerize-linux-amd64-v$DOCKERIZE_VERSION.tar.gz \
